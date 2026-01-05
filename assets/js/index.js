@@ -18,6 +18,9 @@ document.querySelectorAll("a, button, div").forEach(el => {
   });
 });
 
+const isTouchDevice =
+  'ontouchstart' in window ||
+  navigator.maxTouchPoints > 0;
 
 
 // MOUSE WHEEL SMOOTH SCROLL
@@ -189,4 +192,5 @@ function clickAboutimages(clickedImg){
     }
 
     imgListInner.style.transform = `translateX(${currentTranslate}px)`;
+
   }
