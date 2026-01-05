@@ -18,28 +18,71 @@ document.querySelectorAll("a, button, div").forEach(el => {
   });
 });
 
-const isTouchDevice =
-  'ontouchstart' in window ||
-  navigator.maxTouchPoints > 0;
 
 
-// MOUSE WHEEL SMOOTH SCROLL
 let currentScroll = 0;
 let targetScroll = 0;
 const ease = 0.05;
 
-window.addEventListener("wheel", e => {
+let smoothScrollEnabled = false;
+let rafId = null;
+
+function isMobile() {
+  return window.innerWidth <= 768 || 'ontouchstart' in window;
+}
+
+function onWheel(e) {
+  if (!smoothScrollEnabled) return;
+
   e.preventDefault();
-  targetScroll += e.deltaY * 1;
-  targetScroll = Math.max(0, Math.min(targetScroll, document.body.scrollHeight - window.innerHeight));
-}, { passive: false });
+  targetScroll += e.deltaY;
+  targetScroll = Math.max(
+    0,
+    Math.min(targetScroll, document.body.scrollHeight - window.innerHeight)
+  );
+}
 
 function smoothScroll() {
+  if (!smoothScrollEnabled) return;
+
   currentScroll += (targetScroll - currentScroll) * ease;
   window.scrollTo(0, currentScroll);
-  requestAnimationFrame(smoothScroll);
+  rafId = requestAnimationFrame(smoothScroll);
 }
-smoothScroll();
+
+function enableSmoothScroll() {
+  if (smoothScrollEnabled) return;
+
+  smoothScrollEnabled = true;
+  currentScroll = window.scrollY;
+  targetScroll = window.scrollY;
+
+  window.addEventListener("wheel", onWheel, { passive: false });
+  smoothScroll();
+}
+
+function disableSmoothScroll() {
+  smoothScrollEnabled = false;
+
+  window.removeEventListener("wheel", onWheel);
+  cancelAnimationFrame(rafId);
+}
+
+function checkScrollMode() {
+  if (isMobile()) {
+    disableSmoothScroll(); // native scroll
+  } else {
+    enableSmoothScroll(); // custom scroll
+  }
+}
+
+// Initial check
+checkScrollMode();
+
+// Re-check on resize / rotation
+window.addEventListener("resize", checkScrollMode);
+
+
 
 
 
@@ -194,3 +237,4 @@ function clickAboutimages(clickedImg){
     imgListInner.style.transform = `translateX(${currentTranslate}px)`;
 
   }
+
